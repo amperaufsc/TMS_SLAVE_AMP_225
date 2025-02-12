@@ -55,7 +55,7 @@ CAN_HandleTypeDef hcan;
 TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
-int adcFlag = 0, count = 0;
+int timerFlag = 0;
 uint16_t adcBuffer [bufferSize];
 float voltageBuffer [bufferSize], tempBuffer [bufferSize];
 /* USER CODE END PV */
@@ -68,7 +68,6 @@ static void MX_ADC1_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_CAN_Init(void);
 /* USER CODE BEGIN PFP */
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc);
 float readVoltage(uint16_t rawAdcVal);
 float readTemperature(float voltage);
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
@@ -151,12 +150,12 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  if(adcFlag == 1){
-		  for(int i=0;i++;i<bufferSize){
+	  if(timerFlag == 1){
+		  for(int i=0; i<bufferSize; i++){
 			  voltageBuffer[i] = readVoltage(adcBuffer[i]);
 			  tempBuffer[i] = readTemperature(voltageBuffer[i]);
 		  }
-		  adcFlag = 0;
+		  timerFlag = 0;
 	  }
 
 
@@ -534,12 +533,8 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc){
-	adcFlag = 1;
-}
-
 float readVoltage(uint16_t rawAdcVal){
-	uint8_t voltage = (rawAdcVal*3.3)/((1<<12)-1);
+	float voltage = (rawAdcVal*3.3)/(4095);
 	return voltage;
 }
 
@@ -548,8 +543,7 @@ float readTemperature(float voltage){
 	return temperature;
 }
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	 HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adcBuffer, bufferSize);
-	 count++;
+	timerFlag = 1;
 }
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
 	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rxHeader, rxData);
