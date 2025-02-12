@@ -60,8 +60,8 @@ all: main-build
 main-build: TMS_SLAVE_AMP_225.elf secondary-outputs
 
 # Tool invocations
-TMS_SLAVE_AMP_225.elf TMS_SLAVE_AMP_225.map: $(OBJS) $(USER_OBJS) C:\Users\Win\ 10\STM32CubeIDE\workspace_1.17.0\TMS_SLAVE_AMP_225\STM32F103RBTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "TMS_SLAVE_AMP_225.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\Win 10\STM32CubeIDE\workspace_1.17.0\TMS_SLAVE_AMP_225\STM32F103RBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="TMS_SLAVE_AMP_225.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+TMS_SLAVE_AMP_225.elf TMS_SLAVE_AMP_225.map: $(OBJS) $(USER_OBJS) C:\Users\Bolsista\STM32CubeIDE\workspace_1.17.0\TMS_SLAVE_AMP_225\STM32F103RBTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "TMS_SLAVE_AMP_225.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\Bolsista\STM32CubeIDE\workspace_1.17.0\TMS_SLAVE_AMP_225\STM32F103RBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="TMS_SLAVE_AMP_225.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

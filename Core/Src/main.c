@@ -33,11 +33,11 @@
 /* USER CODE BEGIN PD */
 #define bufferSize 16
 // Coeficientes do polinômio T(V)
-#define C0 (-2.41)
-#define C1 (8.49)
-#define C2 (9.01)
-#define C3 (-91.16)
-#define C4 (130.63)
+#define C4 (6.03)
+#define C3 (-40.82)
+#define C2 (105.64)
+#define C1 (-156.45)
+#define C0 (134.25)
 
 /* USER CODE END PD */
 

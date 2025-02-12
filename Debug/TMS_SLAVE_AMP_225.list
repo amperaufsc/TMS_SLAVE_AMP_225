@@ -39,13 +39,13 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  17 .debug_line   0000da32  00000000  00000000  0002e32d  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    0008f777  00000000  00000000  0003bd5f  2**0
+ 18 .debug_str    0008f77d  00000000  00000000  0003bd5f  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000043  00000000  00000000  000cb4d6  2**0
+ 19 .comment      00000043  00000000  00000000  000cb4dc  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  000039bc  00000000  00000000  000cb51c  2**2
+ 20 .debug_frame  000039bc  00000000  00000000  000cb520  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 21 .debug_line_str 0000006e  00000000  00000000  000ceed8  2**0
+ 21 .debug_line_str 00000070  00000000  00000000  000ceedc  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -2023,7 +2023,7 @@ float readTemperature(float voltage){
  8001146:	4619      	mov	r1, r3
  8001148:	a32d      	add	r3, pc, #180	@ (adr r3, 8001200 <readTemperature+0xd8>)
  800114a:	e9d3 2300 	ldrd	r2, r3, [r3]
- 800114e:	f7ff f803 	bl	8000158 <__aeabi_dsub>
+ 800114e:	f7ff f805 	bl	800015c <__adddf3>
  8001152:	4602      	mov	r2, r0
  8001154:	460b      	mov	r3, r1
  8001156:	4614      	mov	r4, r2
@@ -2089,16 +2089,16 @@ float readTemperature(float voltage){
  80011f2:	3710      	adds	r7, #16
  80011f4:	46bd      	mov	sp, r7
  80011f6:	bdb0      	pop	{r4, r5, r7, pc}
- 80011f8:	47ae147b 	.word	0x47ae147b
- 80011fc:	4020fae1 	.word	0x4020fae1
- 8001200:	147ae148 	.word	0x147ae148
- 8001204:	400347ae 	.word	0x400347ae
- 8001208:	b851eb85 	.word	0xb851eb85
- 800120c:	4022051e 	.word	0x4022051e
- 8001210:	70a3d70a 	.word	0x70a3d70a
- 8001214:	c056ca3d 	.word	0xc056ca3d
- 8001218:	f5c28f5c 	.word	0xf5c28f5c
- 800121c:	40605428 	.word	0x40605428
+ 80011f8:	66666666 	.word	0x66666666
+ 80011fc:	c0638e66 	.word	0xc0638e66
+ 8001200:	00000000 	.word	0x00000000
+ 8001204:	4060c800 	.word	0x4060c800
+ 8001208:	c28f5c29 	.word	0xc28f5c29
+ 800120c:	405a68f5 	.word	0x405a68f5
+ 8001210:	c28f5c29 	.word	0xc28f5c29
+ 8001214:	c04468f5 	.word	0xc04468f5
+ 8001218:	51eb851f 	.word	0x51eb851f
+ 800121c:	40181eb8 	.word	0x40181eb8
  8001220:	40080000 	.word	0x40080000
  8001224:	40100000 	.word	0x40100000
 
@@ -2376,9 +2376,9 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
  80013b4:	4b12      	ldr	r3, [pc, #72]	@ (8001400 <HAL_ADC_MspInit+0x128>)
  80013b6:	f44f 6280 	mov.w	r2, #1024	@ 0x400
  80013ba:	615a      	str	r2, [r3, #20]
-    hdma_adc1.Init.Mode = DMA_NORMAL;
+    hdma_adc1.Init.Mode = DMA_CIRCULAR;
  80013bc:	4b10      	ldr	r3, [pc, #64]	@ (8001400 <HAL_ADC_MspInit+0x128>)
- 80013be:	2200      	movs	r2, #0
+ 80013be:	2220      	movs	r2, #32
  80013c0:	619a      	str	r2, [r3, #24]
     hdma_adc1.Init.Priority = DMA_PRIORITY_LOW;
  80013c2:	4b0f      	ldr	r3, [pc, #60]	@ (8001400 <HAL_ADC_MspInit+0x128>)
