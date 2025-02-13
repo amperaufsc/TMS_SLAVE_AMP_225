@@ -18,10 +18,10 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <math.h>
+#include <stdlib.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -32,7 +32,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define bufferSize 16
-#define meanBufferSize 5
+#define windowSize 5
 /*Coeficientes do polinômio T(V)*/
 #define C4 (6.03)
 #define C3 (-40.82)
@@ -59,7 +59,7 @@ TIM_HandleTypeDef htim3;
 int timerFlag = 0, indx = 0, validSamples = 0;
 uint16_t adcBuffer [bufferSize];
 float voltageBuffer [bufferSize], rawTempBuffer [bufferSize], filteredTempBuffer[bufferSize];
-float tempHistory[bufferSize][meanBufferSize] = {0};
+float tempHistory[bufferSize][windowSize] = {0};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -74,7 +74,8 @@ float readVoltage(uint16_t rawAdcVal);
 float readTemperature(float voltage);
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 void tempReading(void);
-void movingAverageFilter(float *inputBuffer, float *outputBuffer);
+void medianFilter(float *inputBuffer, float *outputBuffer);
+int compare(const void *a, const void *b);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -545,20 +546,24 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
 	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rxHeader, rxData);
 }
-void movingAverageFilter(float *inputBuffer, float *outputBuffer) {
-	for (int sensor = 0; sensor < bufferSize; sensor++) {
-		tempHistory[sensor][indx] = inputBuffer[sensor];
-		float sum = 0.0;
-		int samplesToAverage = (validSamples < meanBufferSize) ? validSamples + 1 : meanBufferSize;
-		for (int i = 0; i < samplesToAverage; i++) {
-			sum += tempHistory[sensor][i];
-		}
-		outputBuffer[sensor] = sum / samplesToAverage;
-	}
-	indx = (indx + 1) % meanBufferSize;
-	if (validSamples < meanBufferSize) {
-		validSamples++;
-	}
+int compare(const void *a, const void *b) {
+	return (*(float*)a - *(float*)b);
+}
+void medianFilter(float *inputBuffer, float *outputBuffer) {
+    for (int sensor = 0; sensor < bufferSize; sensor++) {
+        tempHistory[sensor][indx] = inputBuffer[sensor];
+        if (validSamples < 5) {
+            validSamples++;
+        }
+        float temp[5];
+        for (int i = 0; i < validSamples; i++) {
+            temp[i] = tempHistory[sensor][i];
+        }
+        qsort(temp, validSamples, sizeof(float), compare);
+        int medianIndex = validSamples / 2;
+        outputBuffer[sensor] = temp[medianIndex];
+    }
+    indx = (indx + 1) % 5;
 }
 void tempReading(void){
 	if(timerFlag == 1){
@@ -566,7 +571,7 @@ void tempReading(void){
 			voltageBuffer[i] = readVoltage(adcBuffer[i]);
 			rawTempBuffer[i] = readTemperature(voltageBuffer[i]);
 		}
-		movingAverageFilter(rawTempBuffer, filteredTempBuffer);
+		medianFilter(rawTempBuffer, filteredTempBuffer);
 		timerFlag = 0;
 	}
 }
