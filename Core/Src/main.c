@@ -56,7 +56,7 @@ CAN_HandleTypeDef hcan;
 TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
-int timerFlag = 0, indx = 0;
+int timerFlag = 0, indx = 0, validSamples = 0;
 uint16_t adcBuffer [bufferSize];
 float voltageBuffer [bufferSize], rawTempBuffer [bufferSize], filteredTempBuffer[bufferSize];
 float tempHistory[bufferSize][meanBufferSize] = {0};
@@ -549,11 +549,15 @@ void movingAverageFilter(float *inputBuffer, float *outputBuffer) {
 	for (int sensor = 0; sensor < bufferSize; sensor++) {
 		tempHistory[sensor][indx] = inputBuffer[sensor];
 		float sum = 0.0;
-		int samplesToAverage = (indx < meanBufferSize) ? indx + 1 : meanBufferSize;
+		int samplesToAverage = (validSamples < meanBufferSize) ? validSamples + 1 : meanBufferSize;
 		for (int i = 0; i < samplesToAverage; i++) {
 			sum += tempHistory[sensor][i];
 		}
 		outputBuffer[sensor] = sum / samplesToAverage;
+	}
+	indx = (indx + 1) % meanBufferSize;
+	if (validSamples < meanBufferSize) {
+		validSamples++;
 	}
 }
 void tempReading(void){

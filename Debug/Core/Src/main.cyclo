@@ -9,6 +9,6 @@
 ../Core/Src/main.c:538:7:readTemperature	1
 ../Core/Src/main.c:542:6:HAL_TIM_PeriodElapsedCallback	1
 ../Core/Src/main.c:545:6:HAL_CAN_RxFifo0MsgPendingCallback	1
-../Core/Src/main.c:548:6:movingAverageFilter	3
-../Core/Src/main.c:559:6:tempReading	3
-../Core/Src/main.c:575:6:Error_Handler	1
+../Core/Src/main.c:548:6:movingAverageFilter	4
+../Core/Src/main.c:563:6:tempReading	3
+../Core/Src/main.c:579:6:Error_Handler	1
