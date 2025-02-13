@@ -32,7 +32,8 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define bufferSize 16
-// Coeficientes do polinômio T(V)
+#define meanBufferSize 5
+/*Coeficientes do polinômio T(V)*/
 #define C4 (6.03)
 #define C3 (-40.82)
 #define C2 (105.64)
@@ -55,9 +56,10 @@ CAN_HandleTypeDef hcan;
 TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
-int timerFlag = 0;
+int timerFlag = 0, indx = 0;
 uint16_t adcBuffer [bufferSize];
-float voltageBuffer [bufferSize], tempBuffer [bufferSize];
+float voltageBuffer [bufferSize], rawTempBuffer [bufferSize], filteredTempBuffer[bufferSize];
+float tempHistory[bufferSize][meanBufferSize] = {0};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -71,13 +73,17 @@ static void MX_CAN_Init(void);
 float readVoltage(uint16_t rawAdcVal);
 float readTemperature(float voltage);
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan);
+void tempReading(void);
+void movingAverageFilter(float *inputBuffer, float *outputBuffer);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+/*TIMER CONFIGURATION*/
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 /* CAN CONFIGURATION */
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan);
+
 CAN_TxHeaderTypeDef txHeader;
 CAN_RxHeaderTypeDef rxHeader;
 
@@ -150,15 +156,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  if(timerFlag == 1){
-		  for(int i=0; i<bufferSize; i++){
-			  voltageBuffer[i] = readVoltage(adcBuffer[i]);
-			  tempBuffer[i] = readTemperature(voltageBuffer[i]);
-		  }
-		  timerFlag = 0;
-	  }
-
-
+	tempReading();
   }
   /* USER CODE END 3 */
 }
@@ -532,12 +530,11 @@ static void MX_GPIO_Init(void)
 /* USER CODE END MX_GPIO_Init_2 */
 }
 
-/* USER CODE BEGIN 4 */
+/* USER CODE BEGIN 4 */ // Ai mas o código ta feio é melhor fazer vários separados e ficar dando include...Vira homem porra, vsf
 float readVoltage(uint16_t rawAdcVal){
 	float voltage = (rawAdcVal*3.3)/(4095);
 	return voltage;
 }
-
 float readTemperature(float voltage){
 	float temperature = C0 + C1 * voltage + C2 * pow(voltage, 2) + C3 * pow(voltage, 3) + C4 *pow(voltage, 4);
 	return temperature;
@@ -547,6 +544,27 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 }
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
 	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rxHeader, rxData);
+}
+void movingAverageFilter(float *inputBuffer, float *outputBuffer) {
+	for (int sensor = 0; sensor < bufferSize; sensor++) {
+		tempHistory[sensor][indx] = inputBuffer[sensor];
+		float sum = 0.0;
+		int samplesToAverage = (indx < meanBufferSize) ? indx + 1 : meanBufferSize;
+		for (int i = 0; i < samplesToAverage; i++) {
+			sum += tempHistory[sensor][i];
+		}
+		outputBuffer[sensor] = sum / samplesToAverage;
+	}
+}
+void tempReading(void){
+	if(timerFlag == 1){
+		for(int i=0; i<bufferSize; i++){
+			voltageBuffer[i] = readVoltage(adcBuffer[i]);
+			rawTempBuffer[i] = readTemperature(voltageBuffer[i]);
+		}
+		movingAverageFilter(rawTempBuffer, filteredTempBuffer);
+		timerFlag = 0;
+	}
 }
 /* USER CODE END 4 */
 
