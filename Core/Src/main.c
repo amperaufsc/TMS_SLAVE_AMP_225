@@ -562,7 +562,7 @@ void medianFilter(float *inputBuffer, float *outputBuffer) {
         qsort(temp, validSamples, sizeof(float), compare);
         int medianIndex = validSamples / 2;
         outputBuffer[sensor] = temp[medianIndex];
-    }
+    }S
     indx = (indx + 1) % 5;
 }
 void tempReading(void){
