@@ -606,7 +606,7 @@ void medianFilter(float *inputBuffer, float *outputBuffer, medianFilterConfig *c
         }
         outputBuffer[sensor] = medianVal;
     }
-    indx = (indx + 1) % 5;
+    indx = (indx + 1) % (config->filterSize);
 }
 void tempReading(void){
 	for(int i=0; i<bufferSize; i++){
