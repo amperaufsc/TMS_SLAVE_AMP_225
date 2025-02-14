@@ -44,7 +44,14 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
+/* FILTER CONFIGURATION */
+typedef struct {
+    float minVal;  // Valor mínimo permitido (ou -1 para desativar)
+    float maxVal;  // Valor máximo permitido (ou -1 para desativar)
+    int filterSize;  // Tamanho da janela do filtro de mediana
+} medianFilterConfig;
 
+medianFilterConfig config;
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -74,7 +81,7 @@ float readVoltage(uint16_t rawAdcVal);
 float readTemperature(float voltage);
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 void tempReading(void);
-void medianFilter(float *inputBuffer, float *outputBuffer);
+void medianFilter(float *inputBuffer, float *outputBuffer, medianFilterConfig *config);
 int compare(const void *a, const void *b);
 float maxVal(float *buffer, int size);
 /* USER CODE END PFP */
@@ -94,6 +101,9 @@ uint32_t txMailbox;
 
 uint8_t txData[2];
 uint8_t rxData[2];
+
+/* FILTER CONFIGURATION */
+
 /* USER CODE END 0 */
 
 /**
@@ -130,6 +140,7 @@ int main(void)
   MX_TIM3_Init();
   MX_CAN_Init();
   /* USER CODE BEGIN 2 */
+
   HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adcBuffer, bufferSize);
   HAL_TIM_Base_Start_IT(&htim3);
   HAL_CAN_Start(&hcan);
@@ -146,6 +157,12 @@ int main(void)
 
   txData[0] = 0x0;
   txData[1] = 0x0;
+
+  /* FILTER CONFIGURATION */
+
+  config.minVal = -1;
+  config.maxVal = -1;
+  config.filterSize = windowSize;
 
   /* USER CODE END 2 */
 
@@ -568,19 +585,26 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
 int compare(const void *a, const void *b) {
 	return (*(float*)a - *(float*)b);
 }
-void medianFilter(float *inputBuffer, float *outputBuffer) {
+void medianFilter(float *inputBuffer, float *outputBuffer, medianFilterConfig *config) {
     for (int sensor = 0; sensor < bufferSize; sensor++) {
         tempHistory[sensor][indx] = inputBuffer[sensor];
-        if (validSamples < 5) {
+        if (validSamples < config->filterSize) {
             validSamples++;
         }
-        float temp[5];
+        float temp[config->filterSize];
         for (int i = 0; i < validSamples; i++) {
             temp[i] = tempHistory[sensor][i];
         }
         qsort(temp, validSamples, sizeof(float), compare);
         int medianIndex = validSamples / 2;
-        outputBuffer[sensor] = temp[medianIndex];
+        float medianVal = temp[medianIndex];
+        if (config->minVal != -1 && medianVal < config->minVal) {
+        	medianVal = config->minVal;
+        }
+        if (config->maxVal != -1 && medianVal > config->maxVal) {
+        	medianVal = config->maxVal;
+        }
+        outputBuffer[sensor] = medianVal;
     }
     indx = (indx + 1) % 5;
 }
@@ -589,7 +613,7 @@ void tempReading(void){
 		voltageBuffer[i] = readVoltage(adcBuffer[i]);
 		rawTempBuffer[i] = readTemperature(voltageBuffer[i]);
 	}
-	medianFilter(rawTempBuffer, filteredTempBuffer);
+	medianFilter(rawTempBuffer, filteredTempBuffer, &config);
 }
 float maxVal(float *buffer, int size){
 	float max = buffer[0];
