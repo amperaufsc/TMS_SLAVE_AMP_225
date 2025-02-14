@@ -56,9 +56,9 @@ CAN_HandleTypeDef hcan;
 TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
-int timerFlag = 0, indx = 0, validSamples = 0;
+int timerFlag = 0, indx = 0, validSamples = 0, CANRxFlag = 0;
 uint16_t adcBuffer [bufferSize];
-float voltageBuffer [bufferSize], rawTempBuffer [bufferSize], filteredTempBuffer[bufferSize];
+float voltageBuffer [bufferSize], rawTempBuffer [bufferSize], filteredTempBuffer[bufferSize], temperatura = 0;
 float tempHistory[bufferSize][windowSize] = {0};
 /* USER CODE END PV */
 
@@ -76,6 +76,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 void tempReading(void);
 void medianFilter(float *inputBuffer, float *outputBuffer);
 int compare(const void *a, const void *b);
+float maxVal(float *buffer, int size);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -84,14 +85,15 @@ int compare(const void *a, const void *b);
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 /* CAN CONFIGURATION */
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan);
+void writeInfoToCAN(void);
 
 CAN_TxHeaderTypeDef txHeader;
 CAN_RxHeaderTypeDef rxHeader;
 
 uint32_t txMailbox;
 
-uint8_t txData[8];
-uint8_t rxData[8];
+uint8_t txData[2];
+uint8_t rxData[2];
 /* USER CODE END 0 */
 
 /**
@@ -135,18 +137,15 @@ int main(void)
 
   /* CAN CONFIGURATION */
 
-  txHeader.DLC = 1;
+  txHeader.DLC = 2;
   txHeader.ExtId = 0;
   txHeader.IDE = CAN_ID_STD;
   txHeader.RTR = CAN_RTR_DATA;
-  txHeader.StdId = 0x001;
+  txHeader.StdId = 0x1;
   txHeader.TransmitGlobalTime = DISABLE;
 
-  txData[0] = 0x44;
-
-  if(HAL_CAN_AddTxMessage(&hcan, &txHeader, txData, &txMailbox) != HAL_OK){
-	  Error_Handler();
-  }
+  txData[0] = 0x0;
+  txData[1] = 0x0;
 
   /* USER CODE END 2 */
 
@@ -157,7 +156,27 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	tempReading();
+	if(timerFlag==1){
+		tempReading();
+		writeInfoToCAN();
+		timerFlag = 0;
+	}
+	if(CANRxFlag == 1){
+		if(HAL_CAN_GetRxMessage(&hcan, CAN_RX_FIFO0, &rxHeader, rxData)==HAL_OK){
+			switch(rxHeader.StdId)
+			{
+			case 0x1:
+				temperatura = (((rxData[1] << 8) | rxData[0])/10);
+			default:
+				break;
+			case 0x2:
+
+				break;
+			}
+		}
+		CANRxFlag = 0;
+	}
+
   }
   /* USER CODE END 3 */
 }
@@ -544,7 +563,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	timerFlag = 1;
 }
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
-	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rxHeader, rxData);
+	CANRxFlag =1;
 }
 int compare(const void *a, const void *b) {
 	return (*(float*)a - *(float*)b);
@@ -562,17 +581,30 @@ void medianFilter(float *inputBuffer, float *outputBuffer) {
         qsort(temp, validSamples, sizeof(float), compare);
         int medianIndex = validSamples / 2;
         outputBuffer[sensor] = temp[medianIndex];
-    }S
+    }
     indx = (indx + 1) % 5;
 }
 void tempReading(void){
-	if(timerFlag == 1){
-		for(int i=0; i<bufferSize; i++){
-			voltageBuffer[i] = readVoltage(adcBuffer[i]);
-			rawTempBuffer[i] = readTemperature(voltageBuffer[i]);
+	for(int i=0; i<bufferSize; i++){
+		voltageBuffer[i] = readVoltage(adcBuffer[i]);
+		rawTempBuffer[i] = readTemperature(voltageBuffer[i]);
+	}
+	medianFilter(rawTempBuffer, filteredTempBuffer);
+}
+float maxVal(float *buffer, int size){
+	float max = buffer[0];
+	for (int i = 1; i<size; i++){
+		if(buffer[i] > max){
+			max = buffer[i];
 		}
-		medianFilter(rawTempBuffer, filteredTempBuffer);
-		timerFlag = 0;
+	}
+	return max;
+}
+void writeInfoToCAN(void){
+	txData[0] = (uint16_t)(maxVal(filteredTempBuffer, bufferSize)*10);
+	txData[1] = ((uint16_t)(maxVal(filteredTempBuffer, bufferSize)*10)>>8);
+	if(HAL_CAN_AddTxMessage(&hcan, &txHeader, txData, &txMailbox) != HAL_OK){
+		Error_Handler();
 	}
 }
 /* USER CODE END 4 */
