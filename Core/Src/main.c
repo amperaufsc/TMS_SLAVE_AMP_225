@@ -160,8 +160,8 @@ int main(void)
 
   /* FILTER CONFIGURATION */
 
-  config.minVal = -1;
-  config.maxVal = -1;
+  config.minVal = 10;
+  config.maxVal = 55;
   config.filterSize = windowSize;
 
   /* USER CODE END 2 */
