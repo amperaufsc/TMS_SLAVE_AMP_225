@@ -598,11 +598,9 @@ void medianFilter(float *inputBuffer, float *outputBuffer, medianFilterConfig *c
         qsort(temp, validSamples, sizeof(float), compare);
         int medianIndex = validSamples / 2;
         float medianVal = temp[medianIndex];
-        if (config->minVal != -1 && medianVal < config->minVal) {
-        	medianVal = config->minVal;
-        }
-        if (config->maxVal != -1 && medianVal > config->maxVal) {
-        	medianVal = config->maxVal;
+        if ((config->minVal != -1 && medianVal < config->minVal) ||
+            (config->maxVal != -1 && medianVal > config->maxVal)) {
+            continue;
         }
         outputBuffer[sensor] = medianVal;
     }

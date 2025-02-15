@@ -11,7 +11,7 @@
 ../Core/Src/main.c:582:6:HAL_CAN_RxFifo0MsgPendingCallback	16	static
 ../Core/Src/main.c:585:5:compare	16	static
 ../Core/Src/main.c:588:6:medianFilter	72	dynamic
-../Core/Src/main.c:611:6:tempReading	16	static
-../Core/Src/main.c:618:7:maxVal	24	static
-../Core/Src/main.c:627:6:writeInfoToCAN	8	static
-../Core/Src/main.c:640:6:Error_Handler	4	static,ignoring_inline_asm
+../Core/Src/main.c:609:6:tempReading	16	static
+../Core/Src/main.c:616:7:maxVal	24	static
+../Core/Src/main.c:625:6:writeInfoToCAN	8	static
+../Core/Src/main.c:638:6:Error_Handler	4	static,ignoring_inline_asm

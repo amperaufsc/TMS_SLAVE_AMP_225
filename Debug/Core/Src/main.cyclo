@@ -11,7 +11,7 @@
 ../Core/Src/main.c:582:6:HAL_CAN_RxFifo0MsgPendingCallback	1
 ../Core/Src/main.c:585:5:compare	1
 ../Core/Src/main.c:588:6:medianFilter	8
-../Core/Src/main.c:611:6:tempReading	2
-../Core/Src/main.c:618:7:maxVal	3
-../Core/Src/main.c:627:6:writeInfoToCAN	2
-../Core/Src/main.c:640:6:Error_Handler	1
+../Core/Src/main.c:609:6:tempReading	2
+../Core/Src/main.c:616:7:maxVal	3
+../Core/Src/main.c:625:6:writeInfoToCAN	2
+../Core/Src/main.c:638:6:Error_Handler	1
