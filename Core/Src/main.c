@@ -80,7 +80,6 @@ static void MX_CAN_Init(void);
 /* USER CODE BEGIN PFP */
 float readVoltage(uint16_t rawAdcVal);
 float readTemperature(float voltage);
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 void tempReading(void);
 void medianFilter(float *inputBuffer, float *outputBuffer, medianFilterConfig *config);
 int compare(const void *a, const void *b);
