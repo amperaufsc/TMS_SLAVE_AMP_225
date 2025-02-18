@@ -174,10 +174,10 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-//	if(timerFlag==1){
-//		writeInfoToCAN();
-//		timerFlag = 0;
-//	}
+	if(timerFlag==1){
+		writeInfoToCAN();
+		timerFlag = 0;
+	}
 //	if(CANRxFlag == 1){
 //		if(HAL_CAN_GetRxMessage(&hcan, CAN_RX_FIFO0, &rxHeader, rxData)==HAL_OK){
 //			switch(rxHeader.StdId)
@@ -185,9 +185,6 @@ int main(void)
 //			case 0x1:
 //				temperatura = (((rxData[1] << 8) | rxData[0])/10);
 //			default:
-//				break;
-//			case 0x2:
-//
 //				break;
 //			}
 //		}
