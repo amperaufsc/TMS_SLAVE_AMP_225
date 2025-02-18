@@ -64,7 +64,7 @@ CAN_HandleTypeDef hcan;
 TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
-int timerFlag = 0, indx = 0, validSamples = 0, CANRxFlag = 0;
+int timerFlag = 0, indx = 0, validSamples = 0, CANRxFlag = 0, adcFlag = 0, count = 0;
 uint16_t adcBuffer [bufferSize];
 float voltageBuffer [bufferSize], rawTempBuffer [bufferSize], filteredTempBuffer[bufferSize], temperatura = 0;
 float tempHistory[bufferSize][windowSize] = {0};
@@ -84,6 +84,7 @@ void tempReading(void);
 void medianFilter(float *inputBuffer, float *outputBuffer, medianFilterConfig *config);
 int compare(const void *a, const void *b);
 float maxVal(float *buffer, int size);
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -173,27 +174,30 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	if(timerFlag==1){
+//	if(timerFlag==1){
+//		writeInfoToCAN();
+//		timerFlag = 0;
+//	}
+//	if(CANRxFlag == 1){
+//		if(HAL_CAN_GetRxMessage(&hcan, CAN_RX_FIFO0, &rxHeader, rxData)==HAL_OK){
+//			switch(rxHeader.StdId)
+//			{
+//			case 0x1:
+//				temperatura = (((rxData[1] << 8) | rxData[0])/10);
+//			default:
+//				break;
+//			case 0x2:
+//
+//				break;
+//			}
+//		}
+//		CANRxFlag = 0;
+//	}
+	if (adcFlag == 1){
 		tempReading();
-		writeInfoToCAN();
-		timerFlag = 0;
+		adcFlag = 0;
 	}
-	if(CANRxFlag == 1){
-		if(HAL_CAN_GetRxMessage(&hcan, CAN_RX_FIFO0, &rxHeader, rxData)==HAL_OK){
-			switch(rxHeader.StdId)
-			{
-			case 0x1:
-				temperatura = (((rxData[1] << 8) | rxData[0])/10);
-			default:
-				break;
-			case 0x2:
-
-				break;
-			}
-		}
-		CANRxFlag = 0;
-	}
-
+	count++;
   }
   /* USER CODE END 3 */
 }
@@ -280,7 +284,7 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_0;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -617,6 +621,9 @@ void writeInfoToCAN(void){
 	if(HAL_CAN_AddTxMessage(&hcan, &txHeader, txData, &txMailbox) != HAL_OK){
 		Error_Handler();
 	}
+}
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc){
+	adcFlag = 1;
 }
 /* USER CODE END 4 */
 
