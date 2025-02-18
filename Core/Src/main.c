@@ -178,18 +178,18 @@ int main(void)
 		writeInfoToCAN();
 		timerFlag = 0;
 	}
-//	if(CANRxFlag == 1){
-//		if(HAL_CAN_GetRxMessage(&hcan, CAN_RX_FIFO0, &rxHeader, rxData)==HAL_OK){
-//			switch(rxHeader.StdId)
-//			{
-//			case 0x1:
-//				temperatura = (((rxData[1] << 8) | rxData[0])/10);
-//			default:
-//				break;
-//			}
-//		}
-//		CANRxFlag = 0;
-//	}
+	if(CANRxFlag == 1){
+		if(HAL_CAN_GetRxMessage(&hcan, CAN_RX_FIFO0, &rxHeader, rxData)==HAL_OK){
+			switch(rxHeader.StdId)
+			{
+			case 0x1:
+				temperatura = (((rxData[1] << 8) | rxData[0])/10);
+			default:
+				break;
+			}
+		}
+		CANRxFlag = 0;
+	}
 	if (adcFlag == 1){
 		tempReading();
 		adcFlag = 0;
