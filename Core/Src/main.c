@@ -64,7 +64,7 @@ CAN_HandleTypeDef hcan;
 TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
-int indx = 0, validSamples = 0, CANRxFlag = 0, adcFlag = 0;
+int indx = 0, validSamples = 0, adcFlag = 0, count = 0;
 uint16_t adcBuffer [bufferSize];
 float voltageBuffer [bufferSize], rawTempBuffer [bufferSize], filteredTempBuffer[bufferSize], temperatura = 0;
 float tempHistory[bufferSize][windowSize] = {0}, maxTempVal = 0;
@@ -173,6 +173,7 @@ int main(void)
 		  tempReading();
 		  adcFlag = 0;
 	  }
+	  count++;
   }
   /* USER CODE END 3 */
 }
@@ -475,7 +476,7 @@ static void MX_TIM3_Init(void)
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 7199;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 9999;
+  htim3.Init.Period = 999;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
