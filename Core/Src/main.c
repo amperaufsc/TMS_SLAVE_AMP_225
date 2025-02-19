@@ -64,7 +64,7 @@ CAN_HandleTypeDef hcan;
 TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
-int indx = 0, validSamples = 0, CANRxFlag = 0, adcFlag = 0, timerFlag = 0;
+int indx = 0, validSamples = 0, CANRxFlag = 0, adcFlag = 0;
 uint16_t adcBuffer [bufferSize];
 float voltageBuffer [bufferSize], rawTempBuffer [bufferSize], filteredTempBuffer[bufferSize], temperatura = 0;
 float tempHistory[bufferSize][windowSize] = {0}, maxTempVal = 0;
@@ -92,16 +92,9 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc);
 /*TIMER CONFIGURATION*/
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 /* CAN CONFIGURATION */
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan);
-void writeInfoToCAN(void);
-
 CAN_TxHeaderTypeDef txHeader;
-CAN_RxHeaderTypeDef rxHeader;
-
 uint32_t txMailbox;
-
 uint8_t txData[2];
-uint8_t rxData[2];
 
 /* FILTER CONFIGURATION */
 
@@ -145,7 +138,6 @@ int main(void)
   HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adcBuffer, bufferSize);
   HAL_TIM_Base_Start_IT(&htim3);
   HAL_CAN_Start(&hcan);
-  HAL_CAN_ActivateNotification(&hcan, CAN_IT_RX_FIFO0_MSG_PENDING);
 
   /* CAN CONFIGURATION */
 
@@ -174,26 +166,13 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	if(timerFlag == 1){
-		writeInfoToCAN();
-		timerFlag = 0;
-	}
-	if(CANRxFlag == 1){
-		if(HAL_CAN_GetRxMessage(&hcan, CAN_RX_FIFO0, &rxHeader, rxData)==HAL_OK){
-			switch(rxHeader.StdId)
-			{
-			case 0x1:
-				temperatura = (((rxData[1] << 8) | rxData[0])/10);
-			default:
-				break;
-			}
-		}
-		CANRxFlag = 0;
-	}
-	if (adcFlag == 1){
-		tempReading();
-		adcFlag = 0;
-	}
+	  txData[0] = (uint16_t)maxTempVal;
+	  txData[1] = (((uint16_t)maxTempVal)>>8);
+
+	  if (adcFlag == 1){
+		  tempReading();
+		  adcFlag = 0;
+	  }
   }
   /* USER CODE END 3 */
 }
@@ -443,7 +422,7 @@ static void MX_CAN_Init(void)
   /* USER CODE END CAN_Init 1 */
   hcan.Instance = CAN1;
   hcan.Init.Prescaler = 18;
-  hcan.Init.Mode = CAN_MODE_LOOPBACK;
+  hcan.Init.Mode = CAN_MODE_NORMAL;
   hcan.Init.SyncJumpWidth = CAN_SJW_1TQ;
   hcan.Init.TimeSeg1 = CAN_BS1_2TQ;
   hcan.Init.TimeSeg2 = CAN_BS2_1TQ;
@@ -565,9 +544,6 @@ float readTemperature(float voltage){
 	float temperature = C0 + C1 * voltage + C2 * pow(voltage, 2) + C3 * pow(voltage, 3) + C4 *pow(voltage, 4);
 	return temperature;
 }
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
-	CANRxFlag =1;
-}
 int compare(const void *a, const void *b) {
 	return (*(float*)a - *(float*)b);
 }
@@ -609,18 +585,11 @@ void tempReading(void){
 	medianFilter(rawTempBuffer, filteredTempBuffer, &config);
 	maxTempVal = (maxVal(filteredTempBuffer, bufferSize)*10);
 }
-void writeInfoToCAN(void){
-	txData[0] = (uint16_t)maxTempVal;
-	txData[1] = ((uint16_t)maxTempVal>>8);
-	if(HAL_CAN_AddTxMessage(&hcan, &txHeader, txData, &txMailbox) != HAL_OK){
-		Error_Handler();
-	}
-}
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc){
 	adcFlag = 1;
 }
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	writeInfoToCAN();
+	HAL_CAN_AddTxMessage(&hcan, &txHeader, txData, &txMailbox);
 }
 /* USER CODE END 4 */
 
