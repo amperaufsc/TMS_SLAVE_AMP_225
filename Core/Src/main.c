@@ -78,6 +78,7 @@ static void MX_ADC1_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_CAN_Init(void);
 /* USER CODE BEGIN PFP */
+/*ADC CONFIGURATION*/
 float readVoltage(uint16_t rawAdcVal);
 float readTemperature(float voltage);
 void tempReading(void);
