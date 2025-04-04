@@ -598,7 +598,13 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc){
 	adcFlag = 1;
 }
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	HAL_CAN_AddTxMessage(&hcan, &txHeader, txData, &txMailbox);
+	int count = 0;
+	while(HAL_CAN_AddTxMessage(&hcan, &txHeader, txData, &txMailbox)!=HAL_OK){
+		count++;
+		if(count >= 20){
+			Error_Handler();
+		}
+	}
 }
 /* USER CODE END 4 */
 
